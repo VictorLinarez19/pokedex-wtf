@@ -82,6 +82,7 @@ function App() {
   const [searchInput, setSearchInput] = useState('')
   const searchTerm = searchInput.trim().toLowerCase()
   const [selectedType, setSelectedType] = useState('')
+  const [selectedGeneration, setSelectedGeneration] = useState(null)
   const [offset, setOffset] = useState(0)
   const [favorites, setFavorites] = useState(loadFavorites)
   const [showFavorites, setShowFavorites] = useState(false)
@@ -90,11 +91,15 @@ function App() {
 
   const allUrl = searchTerm ? `${API}/pokemon?limit=${ALL_POKEMON_LIMIT}` : null
   const typeUrl = selectedType ? `${API}/type/${selectedType}` : null
+  const genUrl = selectedGeneration ? `${API}/generation/${selectedGeneration}` : null
   const listUrl =
-    !searchTerm && !selectedType ? `${API}/pokemon?limit=${PAGE_SIZE}&offset=${offset}` : null
+    !searchTerm && !selectedType && !selectedGeneration
+      ? `${API}/pokemon?limit=${PAGE_SIZE}&offset=${offset}`
+      : null
 
   const { data: allData, loading: allLoading, error: allError } = useFetch(allUrl)
   const { data: typeData, loading: typeLoading, error: typeError } = useFetch(typeUrl)
+  const { data: genData, loading: genLoading, error: genError } = useFetch(genUrl)
   const { data: listData, loading: listLoading, error: listError } = useFetch(listUrl)
 
   const searchResults = useMemo(() => {
@@ -117,6 +122,14 @@ function App() {
     if (!typeData?.pokemon) return []
     return typeData.pokemon.map((entry) => entry.pokemon)
   }, [typeData])
+
+  const genPokemon = useMemo(() => {
+    if (!genData?.pokemon_species) return []
+    return genData.pokemon_species.map((species) => ({
+      name: species.name,
+      url: species.url.replace('/pokemon-species/', '/pokemon/'),
+    }))
+  }, [genData])
 
   const favoritePokemon = useMemo(
     () => favorites.map((f) => ({ name: f.name, url: `${API}/pokemon/${f.id}` })),
@@ -150,12 +163,23 @@ function App() {
   function handleTypeChange(type) {
     setSelectedType(type)
     setSearchInput('')
+    setSelectedGeneration(null)
+    setOffset(0)
+  }
+
+  function handleGenerationChange(gen) {
+    setSelectedGeneration(gen)
+    setSearchInput('')
+    setSelectedType('')
     setOffset(0)
   }
 
   function handleSearchChange(value) {
     setSearchInput(value)
-    if (value) setSelectedType('')
+    if (value) {
+      setSelectedType('')
+      setSelectedGeneration(null)
+    }
   }
 
   function handlePrevPage() {
@@ -245,6 +269,27 @@ function App() {
         />
       )
     }
+  } else if (selectedGeneration) {
+    if (genLoading) {
+      content = <SkeletonGrid />
+    } else if (genError) {
+      content = <ErrorState message="No se pudo cargar la generación seleccionada." />
+    } else {
+      content = (
+        <div className="mt-6">
+          <p className="text-sm text-slate-500">
+            {genPokemon.length} Pokémon en esta generación
+          </p>
+          <PokemonGrid
+            pokemon={genPokemon}
+            favorites={favorites}
+            compare={compare}
+            onToggleFavorite={handleToggleFavorite}
+            onCompare={handleCompare}
+          />
+        </div>
+      )
+    }
   } else if (listLoading) {
     content = <SkeletonGrid />
   } else if (listError) {
@@ -287,6 +332,8 @@ function App() {
             onSearchChange={handleSearchChange}
             selectedType={selectedType}
             onTypeChange={handleTypeChange}
+            selectedGeneration={selectedGeneration}
+            onGenerationChange={handleGenerationChange}
           />
         )}
         {content}
