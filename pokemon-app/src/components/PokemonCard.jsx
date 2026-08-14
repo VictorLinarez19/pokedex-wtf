@@ -58,6 +58,7 @@ export default function PokemonCard({
   isSelectedForCompare,
   onToggleFavorite,
   onCompare,
+  onCardClick,
 }) {
   const url = pokemon?.sprites ? null : pokemon?.url
   const { data, loading } = useFetch(url)
@@ -76,7 +77,10 @@ export default function PokemonCard({
     : details.sprites?.front_default
 
   return (
-    <article className="flex flex-col rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+    <article
+      onClick={() => onCardClick?.(details)}
+      className="flex cursor-pointer flex-col rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+    >
       <div className="flex items-center justify-between">
         <span className="text-xs font-semibold tracking-wide text-slate-400">
           {formatId(id)}
@@ -84,7 +88,10 @@ export default function PokemonCard({
         <div className="flex items-center gap-1">
           <button
             type="button"
-            onClick={() => onCompare?.({ id, name, url: `${API}/pokemon/${id}` })}
+            onClick={(e) => {
+              e.stopPropagation()
+              onCompare?.({ id, name, url: `${API}/pokemon/${id}` })
+            }}
             className={`rounded-lg p-1.5 transition hover:bg-slate-100 ${
               isSelectedForCompare ? 'bg-indigo-50 text-indigo-600' : 'text-slate-400'
             }`}
@@ -94,7 +101,10 @@ export default function PokemonCard({
           </button>
           <button
             type="button"
-            onClick={() => onToggleFavorite?.({ id, name })}
+            onClick={(e) => {
+              e.stopPropagation()
+              onToggleFavorite?.({ id, name })
+            }}
             className={`rounded-lg p-1.5 transition hover:bg-slate-100 ${
               isFavorite ? 'text-rose-500' : 'text-slate-400'
             }`}
@@ -120,7 +130,10 @@ export default function PokemonCard({
           role="switch"
           aria-checked={shiny}
           aria-label="Alternar versión shiny"
-          onClick={() => setShiny((v) => !v)}
+          onClick={(e) => {
+            e.stopPropagation()
+            setShiny((v) => !v)
+          }}
           className={`relative h-5 w-9 shrink-0 rounded-full transition-colors ${
             shiny ? 'bg-indigo-500' : 'bg-slate-300'
           }`}

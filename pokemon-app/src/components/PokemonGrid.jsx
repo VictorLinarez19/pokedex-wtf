@@ -1,6 +1,13 @@
 import PokemonCard from './PokemonCard'
 
-export default function PokemonGrid({ pokemon, favorites, compare, onToggleFavorite, onCompare }) {
+export default function PokemonGrid({
+  pokemon,
+  favorites,
+  compare,
+  onToggleFavorite,
+  onCompare,
+  onCardClick,
+}) {
   return (
     <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
       {pokemon.map((p) => {
@@ -14,6 +21,7 @@ export default function PokemonGrid({ pokemon, favorites, compare, onToggleFavor
             isSelectedForCompare={isSelected}
             onToggleFavorite={onToggleFavorite}
             onCompare={onCompare}
+            onCardClick={onCardClick}
           />
         )
       })}

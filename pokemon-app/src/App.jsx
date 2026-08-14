@@ -5,6 +5,7 @@ import SearchAndFilter from './components/SearchAndFilter'
 import PokemonGrid from './components/PokemonGrid'
 import PokemonCard from './components/PokemonCard'
 import EvolutionChain from './components/EvolutionChain'
+import EvolutionModal from './components/EvolutionModal'
 import CompareView from './components/CompareView'
 import SkeletonCard from './components/UI/SkeletonCard'
 import useFetch from './hooks/useFetch'
@@ -88,6 +89,7 @@ function App() {
   const [showFavorites, setShowFavorites] = useState(false)
   const [compare, setCompare] = useState([])
   const [compareOpen, setCompareOpen] = useState(false)
+  const [evolutionModal, setEvolutionModal] = useState(null)
 
   const allUrl = searchTerm ? `${API}/pokemon?limit=${ALL_POKEMON_LIMIT}` : null
   const typeUrl = selectedType ? `${API}/type/${selectedType}` : null
@@ -160,6 +162,10 @@ function App() {
     })
   }
 
+  function handleOpenEvolution(pokemon) {
+    setEvolutionModal(pokemon?.name || null)
+  }
+
   function handleTypeChange(type) {
     setSelectedType(type)
     setSearchInput('')
@@ -205,6 +211,7 @@ function App() {
           compare={compare}
           onToggleFavorite={handleToggleFavorite}
           onCompare={handleCompare}
+          onCardClick={handleOpenEvolution}
         />
       )
   } else if (searchTerm) {
@@ -233,6 +240,7 @@ function App() {
                 )}
                 onToggleFavorite={handleToggleFavorite}
                 onCompare={handleCompare}
+                onCardClick={handleOpenEvolution}
               />
               <EvolutionChain pokemonName={exactMatch.name} />
             </div>
@@ -247,6 +255,7 @@ function App() {
               favorites={favorites}
               compare={compare}
               onToggleFavorite={handleToggleFavorite}
+              onCardClick={handleOpenEvolution}
               onCompare={handleCompare}
             />
           </div>
@@ -265,6 +274,7 @@ function App() {
           favorites={favorites}
           compare={compare}
           onToggleFavorite={handleToggleFavorite}
+          onCardClick={handleOpenEvolution}
           onCompare={handleCompare}
         />
       )
@@ -285,6 +295,7 @@ function App() {
             favorites={favorites}
             compare={compare}
             onToggleFavorite={handleToggleFavorite}
+            onCardClick={handleOpenEvolution}
             onCompare={handleCompare}
           />
         </div>
@@ -301,6 +312,7 @@ function App() {
           pokemon={listData?.results ?? []}
           favorites={favorites}
           compare={compare}
+          onCardClick={handleOpenEvolution}
           onToggleFavorite={handleToggleFavorite}
           onCompare={handleCompare}
         />
@@ -345,6 +357,12 @@ function App() {
           onAdd={handleAddCompare}
           onRemove={handleRemoveCompare}
           onClear={() => setCompare([])}
+        />
+      )}
+      {evolutionModal && (
+        <EvolutionModal
+          pokemonName={evolutionModal}
+          onClose={() => setEvolutionModal(null)}
         />
       )}
     </div>
