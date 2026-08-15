@@ -133,6 +133,15 @@ function App() {
     }))
   }, [genData])
 
+  const combinedPokemon = useMemo(() => {
+    if (!selectedType || !selectedGeneration) return []
+    if (!typeData?.pokemon || !genData?.pokemon_species) return []
+    const genNames = new Set(genData.pokemon_species.map((s) => s.name))
+    return typeData.pokemon
+      .map((entry) => entry.pokemon)
+      .filter((p) => genNames.has(p.name))
+  }, [selectedType, selectedGeneration, typeData, genData])
+
   const favoritePokemon = useMemo(
     () => favorites.map((f) => ({ name: f.name, url: `${API}/pokemon/${f.id}` })),
     [favorites],
@@ -169,14 +178,12 @@ function App() {
   function handleTypeChange(type) {
     setSelectedType(type)
     setSearchInput('')
-    setSelectedGeneration(null)
     setOffset(0)
   }
 
   function handleGenerationChange(gen) {
     setSelectedGeneration(gen)
     setSearchInput('')
-    setSelectedType('')
     setOffset(0)
   }
 
@@ -259,6 +266,28 @@ function App() {
               onCompare={handleCompare}
             />
           </div>
+        </div>
+      )
+    }
+  } else if (selectedType && selectedGeneration) {
+    if (typeLoading || genLoading) {
+      content = <SkeletonGrid />
+    } else if (typeError || genError) {
+      content = <ErrorState message="No se pudo cargar el filtro combinado." />
+    } else {
+      content = (
+        <div className="mt-6">
+          <p className="text-sm text-slate-500">
+            {combinedPokemon.length} Pokémon de tipo {selectedType} en esta generación
+          </p>
+          <PokemonGrid
+            pokemon={combinedPokemon}
+            favorites={favorites}
+            compare={compare}
+            onToggleFavorite={handleToggleFavorite}
+            onCardClick={handleOpenEvolution}
+            onCompare={handleCompare}
+          />
         </div>
       )
     }
