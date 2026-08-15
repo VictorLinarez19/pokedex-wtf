@@ -3,7 +3,7 @@ import { Search, Scale, Trash2, X } from 'lucide-react'
 import useFetch from '../hooks/useFetch'
 import { TypeBadge } from './PokemonCard'
 
-const API = 'https://pokeapi.co/api/v2'
+const API = '/api'
 
 const COMPARE_STATS = [
   { key: 'hp', label: 'HP' },

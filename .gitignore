@@ -2,8 +2,9 @@
 node_modules/
 
 # Root-level leftover files: the app deps are managed inside pokemon-app/
-package.json
-package-lock.json
+/package.json
+/package-lock.json
+.env
 
 # Build output
 dist/

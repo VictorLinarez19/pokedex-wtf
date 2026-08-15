@@ -2,7 +2,7 @@ import { Fragment, useEffect, useState } from 'react'
 import { ArrowRight, Loader2 } from 'lucide-react'
 import useFetch from '../hooks/useFetch'
 
-const API = 'https://pokeapi.co/api/v2'
+const API = '/api'
 
 function flatten(chain, out = []) {
   if (!chain) return out

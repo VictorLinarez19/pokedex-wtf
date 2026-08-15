@@ -3,7 +3,7 @@ import { Heart, Scale } from 'lucide-react'
 import useFetch from '../hooks/useFetch'
 import SkeletonCard from './UI/SkeletonCard'
 
-const API = 'https://pokeapi.co/api/v2'
+const API = '/api'
 
 const TYPE_STYLES = {
   normal: 'bg-slate-200 text-slate-700',

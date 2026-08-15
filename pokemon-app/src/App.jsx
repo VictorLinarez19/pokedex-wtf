@@ -11,7 +11,7 @@ import SkeletonCard from './components/UI/SkeletonCard'
 import useFetch from './hooks/useFetch'
 import { loadFavorites, toggleFavorite } from './utils/localStorage'
 
-const API = 'https://pokeapi.co/api/v2'
+const API = '/api'
 const PAGE_SIZE = 20
 const ALL_POKEMON_LIMIT = 100000
 
