@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useState } from 'react'
-import { ArrowRight, Loader2 } from 'lucide-react'
+import { ArrowRight, GitFork, Loader2 } from 'lucide-react'
 import useFetch from '../hooks/useFetch'
 
 const API = '/api'
@@ -41,8 +41,8 @@ export default function EvolutionChain({ pokemonName }) {
 
   if (speciesLoading || chainLoading || loadingSprites) {
     return (
-      <section className="rounded-xl border border-slate-200 bg-white p-5">
-        <div className="flex items-center gap-2 text-sm font-medium text-slate-500">
+      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="flex items-center gap-2 text-sm font-semibold text-slate-500">
           <Loader2 className="h-4 w-4 animate-spin" />
           Cargando evolución…
         </div>
@@ -53,14 +53,19 @@ export default function EvolutionChain({ pokemonName }) {
   if (speciesError || chainError || !chainData?.chain) return null
 
   return (
-    <section className="rounded-xl border border-slate-200 bg-white p-5">
-      <h3 className="text-sm font-semibold text-slate-700">Cadena de evolución</h3>
+    <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <h3 className="flex items-center gap-2 text-sm font-bold text-slate-700">
+        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-indigo-50 text-indigo-500">
+          <GitFork className="h-4 w-4" />
+        </span>
+        Cadena de evolución
+      </h3>
       <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
         {evolutions.map((evo, i) => (
           <Fragment key={evo.id}>
             {i > 0 && <ArrowRight className="h-4 w-4 shrink-0 text-slate-300" />}
             <div className="flex w-20 flex-col items-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-slate-50">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-slate-100 bg-gradient-to-b from-slate-50 to-white shadow-sm">
                 <img
                   src={evo.sprites?.front_default}
                   alt={evo.name}
@@ -68,7 +73,10 @@ export default function EvolutionChain({ pokemonName }) {
                   loading="lazy"
                 />
               </div>
-              <span className="mt-1 truncate text-xs font-medium capitalize text-slate-600">
+              <span className="mt-1 font-pixel text-[8px] text-slate-400">
+                {evo.id ? `#${String(evo.id).padStart(3, '0')}` : ''}
+              </span>
+              <span className="truncate text-xs font-semibold capitalize text-slate-600">
                 {evo.name}
               </span>
             </div>

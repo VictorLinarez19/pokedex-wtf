@@ -2,6 +2,9 @@ import { useState } from 'react'
 import { Heart, Scale } from 'lucide-react'
 import useFetch from '../hooks/useFetch'
 import SkeletonCard from './UI/SkeletonCard'
+import PokeBallWatermark from './UI/PokeBallWatermark'
+import GameStatBar from './UI/GameStatBar'
+import { getTypeTheme } from '../utils/typeColors'
 
 const API = '/api'
 
@@ -30,7 +33,7 @@ export function TypeBadge({ type }) {
   const style = TYPE_STYLES[type] || TYPE_STYLES.normal
   return (
     <span
-      className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium capitalize ${style}`}
+      className={`inline-flex items-center rounded-full border border-black/5 px-2 py-0.5 text-[11px] font-semibold capitalize shadow-sm ${style}`}
     >
       {type}
     </span>
@@ -74,6 +77,7 @@ export default function PokemonCard({
   if (loading) return <SkeletonCard />
   if (!details) return null
 
+  const theme = getTypeTheme(details.types)
   const sprite = isShiny
     ? details.sprites?.front_shiny || details.sprites?.front_default
     : details.sprites?.front_default
@@ -81,12 +85,18 @@ export default function PokemonCard({
   return (
     <article
       onClick={() => onCardClick?.(details)}
-      className="flex cursor-pointer flex-col rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+      style={{
+        '--type-main': theme.main,
+        '--type-soft': theme.soft,
+        '--type-border': theme.border,
+      }}
+      className="pokemon-card group flex cursor-pointer flex-col overflow-hidden rounded-2xl p-4"
     >
-      <div className="flex items-center justify-between">
-        <span className="text-xs font-semibold tracking-wide text-slate-400">
-          {formatId(id)}
-        </span>
+      <PokeBallWatermark className="pointer-events-none absolute -bottom-8 -right-8 h-48 w-48 text-slate-900/[0.06]" />
+      <div className="card-shine" aria-hidden="true" />
+
+      <div className="relative z-[2] flex items-center justify-between">
+        <span className="font-pixel text-[10px] text-slate-400">{formatId(id)}</span>
         <div className="flex items-center gap-1">
           <button
             type="button"
@@ -117,16 +127,27 @@ export default function PokemonCard({
         </div>
       </div>
 
-      <div className="mx-auto mt-3 flex h-28 w-28 items-center justify-center rounded-full bg-slate-50">
+      <div
+        className="relative z-[2] mx-auto mt-3 flex h-28 w-28 items-center justify-center rounded-full"
+        style={{
+          background: `linear-gradient(180deg, ${theme.soft} 0%, #ffffff 100%)`,
+          boxShadow: `inset 0 0 0 2px ${theme.border}`,
+        }}
+      >
         {sprite ? (
-          <img src={sprite} alt={name} className="h-24 w-24 object-contain" loading="lazy" />
+          <img
+            src={sprite}
+            alt={name}
+            className="h-24 w-24 object-contain drop-shadow-sm"
+            loading="lazy"
+          />
         ) : (
           <span className="text-xs text-slate-300">Sin imagen</span>
         )}
       </div>
 
-      <div className="mt-3 flex items-center justify-center gap-2">
-        <h3 className="text-base font-semibold capitalize text-slate-800">{name}</h3>
+      <div className="relative z-[2] mt-3 flex items-center justify-center gap-2">
+        <h3 className="text-base font-bold capitalize text-slate-800">{name}</h3>
         <button
           type="button"
           role="switch"
@@ -147,34 +168,24 @@ export default function PokemonCard({
           />
         </button>
       </div>
-      <p className="mt-0.5 text-center text-[11px] font-medium uppercase tracking-wide text-slate-400">
+      <p className="relative z-[2] mt-0.5 text-center text-[11px] font-semibold uppercase tracking-wide text-slate-400">
         {isShiny ? 'Shiny' : 'Normal'}
       </p>
 
-      <div className="mt-2 flex flex-wrap justify-center gap-1.5">
+      <div className="relative z-[2] mt-2 flex flex-wrap justify-center gap-1.5">
         {details.types?.map((t) => (
           <TypeBadge key={t.type.name} type={t.type.name} />
         ))}
       </div>
 
-      <div className="mt-4 space-y-1.5 border-t border-slate-100 pt-3">
+      <div className="relative z-[2] mt-4 space-y-2 border-t border-slate-200/70 pt-3">
         {CARD_STATS.map(({ key, label }) => {
           const value = getStat(stats, key)
-          const pct = Math.min(100, Math.round((value / 180) * 100))
           return (
             <div key={key} className="flex items-center gap-2">
-              <span className="w-8 text-[10px] font-semibold uppercase text-slate-400">
-                {label}
-              </span>
-              <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-100">
-                <div
-                  className="h-full rounded-full bg-slate-400 transition-all"
-                  style={{ width: `${pct}%` }}
-                />
-              </div>
-              <span className="w-7 text-right text-[10px] font-medium text-slate-500">
-                {value}
-              </span>
+              <span className="w-8 font-pixel text-[9px] text-slate-500">{label}</span>
+              <GameStatBar value={value} max={180} />
+              <span className="w-8 text-right font-pixel text-[9px] text-slate-600">{value}</span>
             </div>
           )
         })}

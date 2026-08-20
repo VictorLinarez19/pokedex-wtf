@@ -59,7 +59,7 @@ function Dropdown({ placeholder, options, value, onChange }) {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center justify-between gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm transition hover:bg-slate-50 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+        className="pokedex-input flex w-full items-center justify-between gap-2 px-3 py-2 text-sm capitalize text-slate-700"
       >
         <span className="truncate capitalize">{label}</span>
         <ChevronDown
@@ -109,7 +109,7 @@ export default function SearchAndFilter({
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
           placeholder="Buscar por nombre o ID…"
-          className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-9 pr-9 text-sm text-slate-700 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+          className="pokedex-input w-full py-2.5 pl-9 pr-9 text-sm text-slate-700 placeholder:text-slate-400"
         />
         {search && (
           <button
@@ -125,7 +125,8 @@ export default function SearchAndFilter({
 
       <div className="grid gap-3 sm:grid-cols-2">
         <div>
-          <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+          <p className="mb-1.5 flex items-center gap-1.5 font-pixel text-[9px] uppercase tracking-wider text-slate-500">
+            <span className="inline-block h-1.5 w-1.5 rounded-full bg-slate-400" />
             Tipo
           </p>
           <Dropdown
@@ -140,7 +141,8 @@ export default function SearchAndFilter({
         </div>
 
         <div>
-          <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+          <p className="mb-1.5 flex items-center gap-1.5 font-pixel text-[9px] uppercase tracking-wider text-slate-500">
+            <span className="inline-block h-1.5 w-1.5 rounded-full bg-slate-400" />
             Generación
           </p>
           <Dropdown
