@@ -1,9 +1,11 @@
 import { useState } from 'react'
-import { Heart, Scale } from 'lucide-react'
+import { Heart, Scale, Sparkles, TriangleAlert } from 'lucide-react'
 import useFetch from '../hooks/useFetch'
 import SkeletonCard from './UI/SkeletonCard'
+import GameStatBar from './UI/GameStatBar'
+import { getTypeTheme } from '../utils/typeColors'
 
-const API = 'https://pokeapi.co/api/v2'
+const API = '/api'
 
 const TYPE_STYLES = {
   normal: 'bg-slate-200 text-slate-700',
@@ -30,7 +32,7 @@ export function TypeBadge({ type }) {
   const style = TYPE_STYLES[type] || TYPE_STYLES.normal
   return (
     <span
-      className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium capitalize ${style}`}
+      className={`inline-flex items-center rounded-[4px] border border-black/5 px-2 py-0.5 text-[11px] font-semibold capitalize shadow-sm ${style}`}
     >
       {type}
     </span>
@@ -41,7 +43,6 @@ const CARD_STATS = [
   { key: 'hp', label: 'HP' },
   { key: 'attack', label: 'ATK' },
   { key: 'defense', label: 'DEF' },
-  { key: 'speed', label: 'SPD' },
 ]
 
 function getStat(stats, name) {
@@ -49,11 +50,12 @@ function getStat(stats, name) {
 }
 
 function formatId(id) {
-  return id ? `#${String(id).padStart(3, '0')}` : ''
+  return id ? `#${String(id).padStart(3, '0')}` : '#000'
 }
 
 export default function PokemonCard({
   pokemon,
+  shiny,
   isFavorite,
   isSelectedForCompare,
   onToggleFavorite,
@@ -62,117 +64,112 @@ export default function PokemonCard({
 }) {
   const url = pokemon?.sprites ? null : pokemon?.url
   const { data, loading } = useFetch(url)
-  const [shiny, setShiny] = useState(false)
+  const [localShiny, setLocalShiny] = useState(false)
 
   const details = pokemon?.sprites ? pokemon : data
   const id = details?.id
   const name = details?.name || pokemon?.name
   const stats = details?.stats
+  const isShiny = shiny || localShiny
 
   if (loading) return <SkeletonCard />
-  if (!details) return null
 
-  const sprite = shiny
+  // Si la petición de detalles falla, mostramos una tarjeta de error en lugar
+  // de `null`, para que el grid nunca quede con celdas vacías.
+  if (!details) {
+    return (
+      <article className="pokedex-card pointer-events-none">
+        <span className="pokedex-card-id font-pixel">#000</span>
+        <div className="pokedex-card-screen">
+          <TriangleAlert className="h-8 w-8 text-slate-300" />
+        </div>
+        <h3 className="pokedex-card-name">{name}</h3>
+        <p className="mt-1 text-[11px] text-slate-400">No se pudo cargar</p>
+      </article>
+    )
+  }
+
+  const theme = getTypeTheme(details.types)
+  const sprite = isShiny
     ? details.sprites?.front_shiny || details.sprites?.front_default
     : details.sprites?.front_default
 
   return (
     <article
       onClick={() => onCardClick?.(details)}
-      className="flex cursor-pointer flex-col rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+      style={{
+        '--type-main': theme.main,
+        '--type-soft': theme.soft,
+        '--type-border': theme.border,
+      }}
+      className="pokedex-card group"
     >
-      <div className="flex items-center justify-between">
-        <span className="text-xs font-semibold tracking-wide text-slate-400">
-          {formatId(id)}
-        </span>
-        <div className="flex items-center gap-1">
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation()
-              onCompare?.({ id, name, url: `${API}/pokemon/${id}` })
-            }}
-            className={`rounded-lg p-1.5 transition hover:bg-slate-100 ${
-              isSelectedForCompare ? 'bg-indigo-50 text-indigo-600' : 'text-slate-400'
-            }`}
-            title="Añadir a comparar"
-          >
-            <Scale className="h-4 w-4" />
-          </button>
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation()
-              onToggleFavorite?.({ id, name })
-            }}
-            className={`rounded-lg p-1.5 transition hover:bg-slate-100 ${
-              isFavorite ? 'text-rose-500' : 'text-slate-400'
-            }`}
-            title={isFavorite ? 'Quitar de favoritos' : 'Añadir a favoritos'}
-          >
-            <Heart className={`h-4 w-4 ${isFavorite ? 'fill-current' : ''}`} />
-          </button>
-        </div>
-      </div>
-
-      <div className="mx-auto mt-3 flex h-28 w-28 items-center justify-center rounded-full bg-slate-50">
-        {sprite ? (
-          <img src={sprite} alt={name} className="h-24 w-24 object-contain" loading="lazy" />
-        ) : (
-          <span className="text-xs text-slate-300">Sin imagen</span>
-        )}
-      </div>
-
-      <div className="mt-3 flex items-center justify-center gap-2">
-        <h3 className="text-base font-semibold capitalize text-slate-800">{name}</h3>
+      {/* Acciones (favorito / comparar / shiny) — visibles al pasar el cursor */}
+      <div className="pokedex-card-actions" onClick={(e) => e.stopPropagation()}>
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation()
+            onCompare?.({ id, name, url: `${API}/pokemon/${id}` })
+          }}
+          className={`pokedex-action-btn ${isSelectedForCompare ? 'pokedex-action-btn--active pokedex-action-btn--blue' : ''}`}
+          title="Añadir a comparar"
+        >
+          <Scale className="h-4 w-4" />
+        </button>
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation()
+            onToggleFavorite?.({ id, name })
+          }}
+          className={`pokedex-action-btn ${isFavorite ? 'pokedex-action-btn--active pokedex-action-btn--rose' : ''}`}
+          title={isFavorite ? 'Quitar de favoritos' : 'Añadir a favoritos'}
+        >
+          <Heart className={`h-4 w-4 ${isFavorite ? 'fill-current' : ''}`} />
+        </button>
         <button
           type="button"
           role="switch"
-          aria-checked={shiny}
+          aria-checked={isShiny}
           aria-label="Alternar versión shiny"
           onClick={(e) => {
             e.stopPropagation()
-            setShiny((v) => !v)
+            setLocalShiny((v) => !v)
           }}
-          className={`relative h-5 w-9 shrink-0 rounded-full transition-colors ${
-            shiny ? 'bg-indigo-500' : 'bg-slate-300'
-          }`}
+          className={`pokedex-action-btn ${isShiny ? 'pokedex-action-btn--active pokedex-action-btn--amber' : ''}`}
+          title="Alternar versión shiny"
         >
-          <span
-            className={`absolute left-0.5 top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${
-              shiny ? 'translate-x-4' : ''
-            }`}
-          />
+          <Sparkles className={`h-4 w-4 ${isShiny ? 'fill-current' : ''}`} />
         </button>
       </div>
-      <p className="mt-0.5 text-center text-[11px] font-medium uppercase tracking-wide text-slate-400">
-        {shiny ? 'Shiny' : 'Normal'}
-      </p>
 
-      <div className="mt-2 flex flex-wrap justify-center gap-1.5">
+      <span className="pokedex-card-id font-pixel">{formatId(id)}</span>
+
+      <div className="pokedex-card-screen">
+        {sprite ? (
+          <img src={sprite} alt={name} loading="lazy" className="pixelated" />
+        ) : (
+          <span className="text-xs text-slate-400">Sin imagen</span>
+        )}
+      </div>
+
+      <h3 className="pokedex-card-name">{name}</h3>
+
+      <div className="pokedex-card-types">
         {details.types?.map((t) => (
           <TypeBadge key={t.type.name} type={t.type.name} />
         ))}
       </div>
 
-      <div className="mt-4 space-y-1.5 border-t border-slate-100 pt-3">
+      <div className="pokedex-card-stats">
         {CARD_STATS.map(({ key, label }) => {
           const value = getStat(stats, key)
-          const pct = Math.min(100, Math.round((value / 180) * 100))
           return (
-            <div key={key} className="flex items-center gap-2">
-              <span className="w-8 text-[10px] font-semibold uppercase text-slate-400">
-                {label}
-              </span>
-              <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-100">
-                <div
-                  className="h-full rounded-full bg-slate-400 transition-all"
-                  style={{ width: `${pct}%` }}
-                />
-              </div>
-              <span className="w-7 text-right text-[10px] font-medium text-slate-500">
-                {value}
-              </span>
+            <div key={key} className="pokedex-stat-row">
+              <span className="pokedex-stat-label">{label}</span>
+              <GameStatBar value={value} max={180} />
+              <span className="pokedex-stat-value">{value}</span>
             </div>
           )
         })}

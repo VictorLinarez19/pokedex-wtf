@@ -1,4 +1,5 @@
-import { Search, X } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { Check, ChevronDown, Search, X } from 'lucide-react'
 
 const TYPES = [
   'fire',
@@ -33,19 +34,61 @@ const GENERATIONS = [
   { id: 9, label: 'Gen IX' },
 ]
 
-function Pill({ active, onClick, children }) {
+function Dropdown({ placeholder, options, value, onChange }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef(null)
+
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  const selected = options.find((o) => o.value === value)
+  const label = selected?.label ?? placeholder
+
+  function choose(next) {
+    onChange(next)
+    setOpen(false)
+  }
+
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`shrink-0 rounded-full border px-3 py-1 text-xs font-medium capitalize transition ${
-        active
-          ? 'border-slate-800 bg-slate-800 text-white'
-          : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
-      }`}
-    >
-      {children}
-    </button>
+    <div className="relative" ref={ref}>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="pokedex-input flex w-full items-center justify-between gap-2 px-3 py-2 text-sm capitalize text-slate-700"
+      >
+        <span className="truncate capitalize">{label}</span>
+        <ChevronDown
+          className={`h-4 w-4 shrink-0 text-slate-400 transition ${open ? 'rotate-180' : ''}`}
+        />
+      </button>
+
+      {open && (
+        <ul className="absolute left-0 z-20 mt-1 max-h-64 w-full min-w-44 overflow-auto rounded-xl border border-slate-200 bg-white p-1 shadow-lg">
+          {options.map((o) => {
+            const active = o.value === value
+            return (
+              <li key={o.value ?? 'all'}>
+                <button
+                  type="button"
+                  onClick={() => choose(o.value)}
+                  className={`flex w-full items-center justify-between gap-2 rounded-lg px-3 py-1.5 text-left text-sm capitalize transition ${
+                    active ? 'bg-slate-800 text-white' : 'text-slate-600 hover:bg-slate-100'
+                  }`}
+                >
+                  {o.label}
+                  {active && <Check className="h-4 w-4 shrink-0" />}
+                </button>
+              </li>
+            )
+          })}
+        </ul>
+      )}
+    </div>
   )
 }
 
@@ -66,7 +109,7 @@ export default function SearchAndFilter({
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
           placeholder="Buscar por nombre o ID…"
-          className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-9 pr-9 text-sm text-slate-700 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+          className="pokedex-input w-full py-2.5 pl-9 pr-9 text-sm text-slate-700 placeholder:text-slate-400"
         />
         {search && (
           <button
@@ -80,34 +123,37 @@ export default function SearchAndFilter({
         )}
       </div>
 
-      <div className="flex flex-wrap gap-2">
-        <Pill active={selectedType === ''} onClick={() => onTypeChange('')}>
-          Todos
-        </Pill>
-        {TYPES.map((type) => (
-          <Pill key={type} active={selectedType === type} onClick={() => onTypeChange(type)}>
-            {type}
-          </Pill>
-        ))}
-      </div>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div>
+          <p className="mb-1.5 flex items-center gap-1.5 font-pixel text-[9px] uppercase tracking-wider text-slate-500">
+            <span className="inline-block h-1.5 w-1.5 rounded-full bg-slate-400" />
+            Tipo
+          </p>
+          <Dropdown
+            placeholder="Todos"
+            options={[
+              { value: '', label: 'Todos' },
+              ...TYPES.map((type) => ({ value: type, label: type })),
+            ]}
+            value={selectedType}
+            onChange={onTypeChange}
+          />
+        </div>
 
-      <div>
-        <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
-          Generación
-        </p>
-        <div className="flex flex-wrap gap-2">
-          <Pill active={selectedGeneration === null} onClick={() => onGenerationChange(null)}>
-            Todas
-          </Pill>
-          {GENERATIONS.map((gen) => (
-            <Pill
-              key={gen.id}
-              active={selectedGeneration === gen.id}
-              onClick={() => onGenerationChange(gen.id)}
-            >
-              {gen.label}
-            </Pill>
-          ))}
+        <div>
+          <p className="mb-1.5 flex items-center gap-1.5 font-pixel text-[9px] uppercase tracking-wider text-slate-500">
+            <span className="inline-block h-1.5 w-1.5 rounded-full bg-slate-400" />
+            Generación
+          </p>
+          <Dropdown
+            placeholder="Todas"
+            options={[
+              { value: null, label: 'Todas' },
+              ...GENERATIONS.map((gen) => ({ value: gen.id, label: gen.label })),
+            ]}
+            value={selectedGeneration}
+            onChange={onGenerationChange}
+          />
         </div>
       </div>
     </section>

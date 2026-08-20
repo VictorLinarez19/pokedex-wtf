@@ -4,6 +4,7 @@ export default function PokemonGrid({
   pokemon,
   favorites,
   compare,
+  shiny,
   onToggleFavorite,
   onCompare,
   onCardClick,
@@ -17,6 +18,7 @@ export default function PokemonGrid({
           <PokemonCard
             key={p.url || p.name}
             pokemon={p}
+            shiny={shiny}
             isFavorite={isFav}
             isSelectedForCompare={isSelected}
             onToggleFavorite={onToggleFavorite}

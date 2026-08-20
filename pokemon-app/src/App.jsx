@@ -11,7 +11,7 @@ import SkeletonCard from './components/UI/SkeletonCard'
 import useFetch from './hooks/useFetch'
 import { loadFavorites, toggleFavorite } from './utils/localStorage'
 
-const API = 'https://pokeapi.co/api/v2'
+const API = '/api'
 const PAGE_SIZE = 20
 const ALL_POKEMON_LIMIT = 100000
 
@@ -31,9 +31,9 @@ function SkeletonGrid() {
 
 function ErrorState({ message }) {
   return (
-    <div className="mt-10 flex flex-col items-center justify-center rounded-xl border border-slate-200 bg-white px-6 py-12 text-center">
+    <div className="mt-10 flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white/80 px-6 py-12 text-center shadow-sm">
       <TriangleAlert className="h-8 w-8 text-slate-300" />
-      <p className="mt-3 text-sm font-medium text-slate-600">{message}</p>
+      <p className="mt-3 text-sm font-semibold text-slate-600">{message}</p>
       <p className="mt-1 text-xs text-slate-400">Inténtalo con otro nombre, ID o tipo.</p>
     </div>
   )
@@ -41,9 +41,9 @@ function ErrorState({ message }) {
 
 function EmptyFavorites() {
   return (
-    <div className="mt-10 flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 bg-white px-6 py-12 text-center">
+    <div className="mt-10 flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white/80 px-6 py-12 text-center shadow-sm">
       <Heart className="h-8 w-8 text-slate-300" />
-      <p className="mt-3 text-sm font-medium text-slate-600">Aún no tienes favoritos</p>
+      <p className="mt-3 text-sm font-semibold text-slate-600">Aún no tienes favoritos</p>
       <p className="mt-1 text-xs text-slate-400">Toca el corazón de un Pokémon para guardarlo aquí.</p>
     </div>
   )
@@ -53,24 +53,25 @@ function Pagination({ offset, count, onPrev, onNext }) {
   const totalPages = Math.max(1, Math.ceil(count / PAGE_SIZE))
   const currentPage = Math.floor(offset / PAGE_SIZE) + 1
   return (
-    <div className="mt-8 flex flex-col items-center gap-2 sm:flex-row sm:justify-center sm:gap-4">
+    <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center sm:gap-8">
       <button
         type="button"
         onClick={onPrev}
         disabled={offset <= 0}
-        className="flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+        className="game-btn btn-slate px-4 py-2 text-sm"
       >
         <ChevronLeft className="h-4 w-4" />
         Anterior
       </button>
-      <span className="text-sm text-slate-500">
-        Página <span className="font-semibold text-slate-700">{currentPage}</span> de {totalPages}
+      <span className="font-pixel text-[10px] text-slate-500">
+        <span className="text-slate-800">{String(currentPage).padStart(2, '0')}</span> /{' '}
+        {String(totalPages).padStart(2, '0')}
       </span>
       <button
         type="button"
         onClick={onNext}
         disabled={offset + PAGE_SIZE >= count}
-        className="flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+        className="game-btn btn-slate px-4 py-2 text-sm"
       >
         Siguiente
         <ChevronRight className="h-4 w-4" />
@@ -79,7 +80,7 @@ function Pagination({ offset, count, onPrev, onNext }) {
   )
 }
 
-function App() {
+function App({ user, onLogout }) {
   const [searchInput, setSearchInput] = useState('')
   const searchTerm = searchInput.trim().toLowerCase()
   const [selectedType, setSelectedType] = useState('')
@@ -90,6 +91,7 @@ function App() {
   const [compare, setCompare] = useState([])
   const [compareOpen, setCompareOpen] = useState(false)
   const [evolutionModal, setEvolutionModal] = useState(null)
+  const [shinyMode, setShinyMode] = useState(false)
 
   const allUrl = searchTerm ? `${API}/pokemon?limit=${ALL_POKEMON_LIMIT}` : null
   const typeUrl = selectedType ? `${API}/type/${selectedType}` : null
@@ -133,6 +135,15 @@ function App() {
     }))
   }, [genData])
 
+  const combinedPokemon = useMemo(() => {
+    if (!selectedType || !selectedGeneration) return []
+    if (!typeData?.pokemon || !genData?.pokemon_species) return []
+    const genNames = new Set(genData.pokemon_species.map((s) => s.name))
+    return typeData.pokemon
+      .map((entry) => entry.pokemon)
+      .filter((p) => genNames.has(p.name))
+  }, [selectedType, selectedGeneration, typeData, genData])
+
   const favoritePokemon = useMemo(
     () => favorites.map((f) => ({ name: f.name, url: `${API}/pokemon/${f.id}` })),
     [favorites],
@@ -169,14 +180,12 @@ function App() {
   function handleTypeChange(type) {
     setSelectedType(type)
     setSearchInput('')
-    setSelectedGeneration(null)
     setOffset(0)
   }
 
   function handleGenerationChange(gen) {
     setSelectedGeneration(gen)
     setSearchInput('')
-    setSelectedType('')
     setOffset(0)
   }
 
@@ -207,6 +216,7 @@ function App() {
       ) : (
         <PokemonGrid
           pokemon={favoritePokemon}
+          shiny={shinyMode}
           favorites={favorites}
           compare={compare}
           onToggleFavorite={handleToggleFavorite}
@@ -234,6 +244,7 @@ function App() {
             <div className="grid items-start gap-6 lg:grid-cols-[340px_1fr]">
               <PokemonCard
                 pokemon={exactMatch}
+                shiny={shinyMode}
                 isFavorite={favorites.some((f) => f.id === exactId || f.name === exactMatch.name)}
                 isSelectedForCompare={compare.some(
                   (c) => c.id === exactId || c.name === exactMatch.name,
@@ -252,6 +263,7 @@ function App() {
             </p>
             <PokemonGrid
               pokemon={visibleResults}
+              shiny={shinyMode}
               favorites={favorites}
               compare={compare}
               onToggleFavorite={handleToggleFavorite}
@@ -259,6 +271,29 @@ function App() {
               onCompare={handleCompare}
             />
           </div>
+        </div>
+      )
+    }
+  } else if (selectedType && selectedGeneration) {
+    if (typeLoading || genLoading) {
+      content = <SkeletonGrid />
+    } else if (typeError || genError) {
+      content = <ErrorState message="No se pudo cargar el filtro combinado." />
+    } else {
+      content = (
+        <div className="mt-6">
+          <p className="text-sm text-slate-500">
+            {combinedPokemon.length} Pokémon de tipo {selectedType} en esta generación
+          </p>
+          <PokemonGrid
+            pokemon={combinedPokemon}
+            shiny={shinyMode}
+            favorites={favorites}
+            compare={compare}
+            onToggleFavorite={handleToggleFavorite}
+            onCardClick={handleOpenEvolution}
+            onCompare={handleCompare}
+          />
         </div>
       )
     }
@@ -271,6 +306,7 @@ function App() {
       content = (
         <PokemonGrid
           pokemon={typePokemon}
+          shiny={shinyMode}
           favorites={favorites}
           compare={compare}
           onToggleFavorite={handleToggleFavorite}
@@ -292,6 +328,7 @@ function App() {
           </p>
           <PokemonGrid
             pokemon={genPokemon}
+            shiny={shinyMode}
             favorites={favorites}
             compare={compare}
             onToggleFavorite={handleToggleFavorite}
@@ -310,6 +347,7 @@ function App() {
       <>
         <PokemonGrid
           pokemon={listData?.results ?? []}
+          shiny={shinyMode}
           favorites={favorites}
           compare={compare}
           onCardClick={handleOpenEvolution}
@@ -329,27 +367,35 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
-      <Navbar
-        showFavorites={showFavorites}
-        favoritesCount={favorites.length}
-        compareCount={compare.length}
-        onToggleFavorites={() => setShowFavorites((v) => !v)}
-        onOpenCompare={() => setCompareOpen(true)}
-      />
-      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-        {!showFavorites && (
-          <SearchAndFilter
-            search={searchInput}
-            onSearchChange={handleSearchChange}
-            selectedType={selectedType}
-            onTypeChange={handleTypeChange}
-            selectedGeneration={selectedGeneration}
-            onGenerationChange={handleGenerationChange}
+    <div className="pokedex-bg min-h-screen text-slate-900">
+      <div className="mx-auto max-w-7xl p-2 sm:p-4">
+        <div className="pokedex-device flex min-h-[calc(100vh-1rem)] flex-col sm:min-h-[calc(100vh-2rem)]">
+          <Navbar
+            user={user}
+            onLogout={onLogout}
+            showFavorites={showFavorites}
+            favoritesCount={favorites.length}
+            compareCount={compare.length}
+            shiny={shinyMode}
+            onToggleFavorites={() => setShowFavorites((v) => !v)}
+            onToggleShiny={() => setShinyMode((v) => !v)}
+            onOpenCompare={() => setCompareOpen(true)}
           />
-        )}
-        {content}
-      </main>
+          <main className="flex-1 rounded-b-[20px] bg-slate-50 px-4 py-6 sm:px-6 lg:px-8">
+            {!showFavorites && (
+              <SearchAndFilter
+                search={searchInput}
+                onSearchChange={handleSearchChange}
+                selectedType={selectedType}
+                onTypeChange={handleTypeChange}
+                selectedGeneration={selectedGeneration}
+                onGenerationChange={handleGenerationChange}
+              />
+            )}
+            {content}
+          </main>
+        </div>
+      </div>
       {compareOpen && (
         <CompareView
           compare={compare}
