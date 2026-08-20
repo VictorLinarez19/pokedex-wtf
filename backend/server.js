@@ -5,12 +5,9 @@ import cors from 'cors'
 const app = express()
 app.use(cors())
 
-const POKEAPI = process.env.POKEAPI_URL || 'https://pokeapi.co/api/v2'
+const POKEAPI = process.env.POKEAPI_URL
 const PORT = process.env.PORT || 3000
 
-// Reemplaza las URLs absolutas de PokeAPI (https://pokeapi.co/api/v2/...)
-// por rutas locales (/api/...) para que el frontend jamás llame a PokeAPI
-// directamente.
 function rewriteUrls(value) {
   if (Array.isArray(value)) return value.map(rewriteUrls)
   if (value && typeof value === 'object') {
@@ -40,7 +37,7 @@ app.get('/api', (_req, res) => {
   })
 })
 
-// Proxy genérico: /api/<ruta> -> https://pokeapi.co/api/v2/<ruta>
+
 app.use('/api', async (req, res) => {
   const target = POKEAPI + req.originalUrl.replace(/^\/api/, '')
 
