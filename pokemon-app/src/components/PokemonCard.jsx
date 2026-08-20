@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Heart, Scale, Sparkles } from 'lucide-react'
+import { Heart, Scale, Sparkles, TriangleAlert } from 'lucide-react'
 import useFetch from '../hooks/useFetch'
 import SkeletonCard from './UI/SkeletonCard'
 import GameStatBar from './UI/GameStatBar'
@@ -73,7 +73,21 @@ export default function PokemonCard({
   const isShiny = shiny || localShiny
 
   if (loading) return <SkeletonCard />
-  if (!details) return null
+
+  // Si la petición de detalles falla, mostramos una tarjeta de error en lugar
+  // de `null`, para que el grid nunca quede con celdas vacías.
+  if (!details) {
+    return (
+      <article className="pokedex-card pointer-events-none">
+        <span className="pokedex-card-id font-pixel">#000</span>
+        <div className="pokedex-card-screen">
+          <TriangleAlert className="h-8 w-8 text-slate-300" />
+        </div>
+        <h3 className="pokedex-card-name">{name}</h3>
+        <p className="mt-1 text-[11px] text-slate-400">No se pudo cargar</p>
+      </article>
+    )
+  }
 
   const theme = getTypeTheme(details.types)
   const sprite = isShiny

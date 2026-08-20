@@ -80,7 +80,7 @@ function Pagination({ offset, count, onPrev, onNext }) {
   )
 }
 
-function App() {
+function App({ user, onLogout }) {
   const [searchInput, setSearchInput] = useState('')
   const searchTerm = searchInput.trim().toLowerCase()
   const [selectedType, setSelectedType] = useState('')
@@ -371,6 +371,8 @@ function App() {
       <div className="mx-auto max-w-7xl p-2 sm:p-4">
         <div className="pokedex-device flex min-h-[calc(100vh-1rem)] flex-col sm:min-h-[calc(100vh-2rem)]">
           <Navbar
+            user={user}
+            onLogout={onLogout}
             showFavorites={showFavorites}
             favoritesCount={favorites.length}
             compareCount={compare.length}

@@ -1,6 +1,8 @@
-import { Heart, Scale, Sparkles } from 'lucide-react'
+import { Heart, LogOut, Scale, Sparkles } from 'lucide-react'
 
 export default function Navbar({
+  user,
+  onLogout,
   showFavorites,
   favoritesCount,
   compareCount,
@@ -64,6 +66,16 @@ export default function Navbar({
                 {compareCount}/2
               </span>
             )}
+          </button>
+
+          <button
+            type="button"
+            onClick={onLogout}
+            className="game-btn btn-slate"
+            title={`Cerrar sesión de ${user ?? ''}`}
+          >
+            <LogOut className="h-4 w-4" />
+            <span className="hidden sm:inline">{user}</span>
           </button>
         </div>
       </div>
