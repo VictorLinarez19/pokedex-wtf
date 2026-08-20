@@ -54,6 +54,7 @@ function formatId(id) {
 
 export default function PokemonCard({
   pokemon,
+  shiny,
   isFavorite,
   isSelectedForCompare,
   onToggleFavorite,
@@ -62,17 +63,18 @@ export default function PokemonCard({
 }) {
   const url = pokemon?.sprites ? null : pokemon?.url
   const { data, loading } = useFetch(url)
-  const [shiny, setShiny] = useState(false)
+  const [localShiny, setLocalShiny] = useState(false)
 
   const details = pokemon?.sprites ? pokemon : data
   const id = details?.id
   const name = details?.name || pokemon?.name
   const stats = details?.stats
+  const isShiny = shiny || localShiny
 
   if (loading) return <SkeletonCard />
   if (!details) return null
 
-  const sprite = shiny
+  const sprite = isShiny
     ? details.sprites?.front_shiny || details.sprites?.front_default
     : details.sprites?.front_default
 
@@ -128,25 +130,25 @@ export default function PokemonCard({
         <button
           type="button"
           role="switch"
-          aria-checked={shiny}
+          aria-checked={isShiny}
           aria-label="Alternar versión shiny"
           onClick={(e) => {
             e.stopPropagation()
-            setShiny((v) => !v)
+            setLocalShiny((v) => !v)
           }}
           className={`relative h-5 w-9 shrink-0 rounded-full transition-colors ${
-            shiny ? 'bg-indigo-500' : 'bg-slate-300'
+            isShiny ? 'bg-indigo-500' : 'bg-slate-300'
           }`}
         >
           <span
             className={`absolute left-0.5 top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${
-              shiny ? 'translate-x-4' : ''
+              isShiny ? 'translate-x-4' : ''
             }`}
           />
         </button>
       </div>
       <p className="mt-0.5 text-center text-[11px] font-medium uppercase tracking-wide text-slate-400">
-        {shiny ? 'Shiny' : 'Normal'}
+        {isShiny ? 'Shiny' : 'Normal'}
       </p>
 
       <div className="mt-2 flex flex-wrap justify-center gap-1.5">

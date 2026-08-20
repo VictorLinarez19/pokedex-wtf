@@ -1,10 +1,12 @@
-import { Heart, Scale } from 'lucide-react'
+import { Heart, Scale, Sparkles } from 'lucide-react'
 
 export default function Navbar({
   showFavorites,
   favoritesCount,
   compareCount,
+  shiny,
   onToggleFavorites,
+  onToggleShiny,
   onOpenCompare,
 }) {
   return (
@@ -35,6 +37,19 @@ export default function Navbar({
                 {favoritesCount}
               </span>
             )}
+          </button>
+
+          <button
+            type="button"
+            onClick={onToggleShiny}
+            className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-medium transition ${
+              shiny
+                ? 'border-yellow-200 bg-yellow-50 text-yellow-600'
+                : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+            }`}
+          >
+            <Sparkles className={`h-4 w-4 ${shiny ? 'fill-current' : ''}`} />
+            <span className="hidden sm:inline">Shiny</span>
           </button>
 
           <button

@@ -90,6 +90,7 @@ function App() {
   const [compare, setCompare] = useState([])
   const [compareOpen, setCompareOpen] = useState(false)
   const [evolutionModal, setEvolutionModal] = useState(null)
+  const [shinyMode, setShinyMode] = useState(false)
 
   const allUrl = searchTerm ? `${API}/pokemon?limit=${ALL_POKEMON_LIMIT}` : null
   const typeUrl = selectedType ? `${API}/type/${selectedType}` : null
@@ -214,6 +215,7 @@ function App() {
       ) : (
         <PokemonGrid
           pokemon={favoritePokemon}
+          shiny={shinyMode}
           favorites={favorites}
           compare={compare}
           onToggleFavorite={handleToggleFavorite}
@@ -241,6 +243,7 @@ function App() {
             <div className="grid items-start gap-6 lg:grid-cols-[340px_1fr]">
               <PokemonCard
                 pokemon={exactMatch}
+                shiny={shinyMode}
                 isFavorite={favorites.some((f) => f.id === exactId || f.name === exactMatch.name)}
                 isSelectedForCompare={compare.some(
                   (c) => c.id === exactId || c.name === exactMatch.name,
@@ -259,6 +262,7 @@ function App() {
             </p>
             <PokemonGrid
               pokemon={visibleResults}
+              shiny={shinyMode}
               favorites={favorites}
               compare={compare}
               onToggleFavorite={handleToggleFavorite}
@@ -282,6 +286,7 @@ function App() {
           </p>
           <PokemonGrid
             pokemon={combinedPokemon}
+            shiny={shinyMode}
             favorites={favorites}
             compare={compare}
             onToggleFavorite={handleToggleFavorite}
@@ -300,6 +305,7 @@ function App() {
       content = (
         <PokemonGrid
           pokemon={typePokemon}
+          shiny={shinyMode}
           favorites={favorites}
           compare={compare}
           onToggleFavorite={handleToggleFavorite}
@@ -321,6 +327,7 @@ function App() {
           </p>
           <PokemonGrid
             pokemon={genPokemon}
+            shiny={shinyMode}
             favorites={favorites}
             compare={compare}
             onToggleFavorite={handleToggleFavorite}
@@ -339,6 +346,7 @@ function App() {
       <>
         <PokemonGrid
           pokemon={listData?.results ?? []}
+          shiny={shinyMode}
           favorites={favorites}
           compare={compare}
           onCardClick={handleOpenEvolution}
@@ -363,7 +371,9 @@ function App() {
         showFavorites={showFavorites}
         favoritesCount={favorites.length}
         compareCount={compare.length}
+        shiny={shinyMode}
         onToggleFavorites={() => setShowFavorites((v) => !v)}
+        onToggleShiny={() => setShinyMode((v) => !v)}
         onOpenCompare={() => setCompareOpen(true)}
       />
       <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
